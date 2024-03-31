@@ -15,9 +15,7 @@ public static class SimplePolygonBooleans
         List<LineSegment>  segmentsA = getLineSegments(verticesA);
         List<LineSegment>  segmentsB = getLineSegments(verticesB);
 
-        List<LineSegment> segments = selectEdges(segmentsA, segmentsB, polygonA, polygonB, true, true);
-        removeDuplicateSegments(segments);
-
+        List<LineSegment> segments = selectEdgesAdd(segmentsA, segmentsB, polygonA, polygonB);
 
         return connectEdges(segments);
     }
@@ -30,9 +28,7 @@ public static class SimplePolygonBooleans
         List<LineSegment> segmentsA = getLineSegments(verticesA);
         List<LineSegment> segmentsB = getLineSegments(verticesB);
 
-        List<LineSegment> segments = selectEdges(segmentsA, segmentsB, polygonA, polygonB, true, false);
-        removeDuplicateSegments(segments);
-
+        List<LineSegment> segments = selectEdgesSubtract(segmentsA, segmentsB, polygonA, polygonB);
 
         return connectEdges(segments);
     }
@@ -45,13 +41,10 @@ public static class SimplePolygonBooleans
         List<LineSegment> segmentsA = getLineSegments(verticesA);
         List<LineSegment> segmentsB = getLineSegments(verticesB);
 
-        List<LineSegment> segments = selectEdges(segmentsA, segmentsB, polygonA, polygonB, false, false);
-        removeDuplicateSegments(segments);
-
+        List<LineSegment> segments = selectEdgesUnion(segmentsA, segmentsB, polygonA, polygonB);
 
         return connectEdges(segments);
     }
-
 
     static void intersectPolygons(List<Vector2> verticesA, List<Vector2> verticesB)
     {
@@ -82,31 +75,76 @@ public static class SimplePolygonBooleans
         }
 
     }
-    static List<LineSegment> selectEdges(List<LineSegment> segmentsA, List<LineSegment> segmentsB, List<Vector2> polygonA, List<Vector2> polygonB, bool selectA, bool selectB)
+    static List<LineSegment> selectEdgesAdd(List<LineSegment> segmentsA, List<LineSegment> segmentsB, List<Vector2> polygonA, List<Vector2> polygonB)
     {
+        List<LineSegment> segments = new List<LineSegment>();
+
         for (int i = 0; i < segmentsA.Count; i++)
         {
             Vector2 midPoint = segmentsA[i].start + (segmentsA[i].end - segmentsA[i].start) * 0.5f;
-            if (PointInPolygon.insideAngle(midPoint, polygonB, 0f) == selectA)
+            if (PointInPolygon.insideAngle(midPoint, polygonB, 0f) == false)
             {
-                segmentsA.RemoveAt(i);
-                i--;
+                segments.Add(segmentsA[i]);
             }
         }
 
         for (int i = 0; i < segmentsB.Count; i++)
         {
             Vector2 midPoint = segmentsB[i].start + (segmentsB[i].end - segmentsB[i].start) * 0.5f;
-            if (PointInPolygon.insideAngle(midPoint, polygonA, 0f) == selectB)
+            if (PointInPolygon.insideAngle(midPoint, polygonA, 0f) == false || pointOnLineOfPolygon(midPoint, polygonA, 0.0001f) == true)
             {
-                segmentsB.RemoveAt(i);
-                i--;
+                segments.Add(segmentsB[i]);
             }
         }
 
+        return segments;
+    }
+    static List<LineSegment> selectEdgesSubtract(List<LineSegment> segmentsA, List<LineSegment> segmentsB, List<Vector2> polygonA, List<Vector2> polygonB)
+    {
         List<LineSegment> segments = new List<LineSegment>();
-        segments.AddRange(segmentsA);
-        segments.AddRange(segmentsB);
+
+        for (int i = 0; i < segmentsA.Count; i++)
+        {
+            Vector2 midPoint = segmentsA[i].start + (segmentsA[i].end - segmentsA[i].start) * 0.5f;
+            if (PointInPolygon.insideAngle(midPoint, polygonB, 0f) == false)
+            {
+                segments.Add(segmentsA[i]);
+            }
+        }
+
+        for (int i = 0; i < segmentsB.Count; i++)
+        {
+            Vector2 midPoint = segmentsB[i].start + (segmentsB[i].end - segmentsB[i].start) * 0.5f;
+            if (PointInPolygon.insideAngle(midPoint, polygonA, 0f) == true && pointOnLineOfPolygon(midPoint, polygonA, 0.0001f) == false)
+            {
+                segments.Add(segmentsB[i]);
+            }
+        }
+
+        return segments;
+    }
+    static List<LineSegment> selectEdgesUnion(List<LineSegment> segmentsA, List<LineSegment> segmentsB, List<Vector2> polygonA, List<Vector2> polygonB)
+    {
+        List<LineSegment> segments = new List<LineSegment>();
+
+        for (int i = 0; i < segmentsA.Count; i++)
+        {
+            Vector2 midPoint = segmentsA[i].start + (segmentsA[i].end - segmentsA[i].start) * 0.5f;
+            if (PointInPolygon.insideAngle(midPoint, polygonB, 0f) == true)
+            {
+                segments.Add(segmentsA[i]);
+            }
+        }
+
+        for (int i = 0; i < segmentsB.Count; i++)
+        {
+            Vector2 midPoint = segmentsB[i].start + (segmentsB[i].end - segmentsB[i].start) * 0.5f;
+            if (PointInPolygon.insideAngle(midPoint, polygonA, 0f) == true && pointOnLineOfPolygon(midPoint, polygonA, 0.0001f) == false)
+            {
+                segments.Add(segmentsB[i]);
+            }
+        }
+
         return segments;
     }
     static List<List<Vector2>> connectEdges(List<LineSegment> segments)
@@ -149,29 +187,6 @@ public static class SimplePolygonBooleans
         return outputPolygon;
     }
 
-    static void removeDuplicateSegments(List<LineSegment> segments)
-    {
-        foreach(LineSegment ls in segments)
-        {
-            Debug.Log("Segment: " + ls.start + " " + ls.end);
-        }
-
-        Debug.Log("------------------------");
-
-        for (int i = 0; i < segments.Count; i++)
-        {
-            for (int j = i + 1; j < segments.Count; j++)
-            {
-                if ((segments[i].start == segments[j].end && segments[i].end == segments[j].start) ||
-                    (segments[i].start == segments[j].start && segments[i].end == segments[j].end))
-                {
-                    Debug.Log("Duplicate: SegmentA = " + segments[i].start + " " + segments[i].end);
-                    segments.RemoveAt(j);
-                    break;
-                }
-            }
-        }
-    }
     static List<LineSegment> getLineSegments(List<Vector2> vertices)
     {
         List<LineSegment> segments = new List<LineSegment>();
@@ -180,6 +195,19 @@ public static class SimplePolygonBooleans
             segments.Add(new LineSegment(vertices[i], vertices[(i + 1) % vertices.Count]));
         }
         return segments;
+    }
+    static bool pointOnLineOfPolygon(Vector2 point, List<Vector2> polygon, float tolerance)
+    {
+        for (int i = 0; i < polygon.Count; i++)
+        {
+            Vector2 a = polygon[i];
+            Vector2 b = polygon[(i + 1) % polygon.Count];
+
+            if(Vector2.Distance(a, point) + Vector2.Distance(b, point) <= Vector2.Distance(a, b) + tolerance)
+                return true;         
+        }
+
+        return false;
     }
 }
 
