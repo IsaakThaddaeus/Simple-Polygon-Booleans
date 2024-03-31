@@ -180,6 +180,7 @@ public static class SimplePolygonBooleans
                 }
             }
 
+            polygon.RemoveAt(polygon.Count - 1);
             outputPolygon.Add(polygon);
         }
 
