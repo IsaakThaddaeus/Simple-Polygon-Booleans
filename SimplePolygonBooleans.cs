@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static UnityEditor.Experimental.AssetDatabaseExperimental.AssetDatabaseCounters;
 
 public static class SimplePolygonBooleans
 {
@@ -17,7 +18,7 @@ public static class SimplePolygonBooleans
 
         List<LineSegment> segments = selectEdgesAdd(segmentsA, segmentsB, polygonA, polygonB);
 
-        return connectEdges(segments);
+        return connectEdges(segments, polygonA, polygonB);
     }
     public static List<List<Vector2>> Subtract(List<Vector2> polygonA, List<Vector2> polygonB)
     {
@@ -30,7 +31,7 @@ public static class SimplePolygonBooleans
 
         List<LineSegment> segments = selectEdgesSubtract(segmentsA, segmentsB, polygonA, polygonB);
 
-        return connectEdges(segments);
+        return connectEdges(segments, polygonA, polygonB);
     }
     public static List<List<Vector2>> Union(List<Vector2> polygonA, List<Vector2> polygonB)
     {
@@ -43,7 +44,7 @@ public static class SimplePolygonBooleans
 
         List<LineSegment> segments = selectEdgesUnion(segmentsA, segmentsB, polygonA, polygonB);
 
-        return connectEdges(segments);
+        return connectEdges(segments, polygonA, polygonB);
     }
 
     static void intersectPolygons(List<Vector2> verticesA, List<Vector2> verticesB)
@@ -147,10 +148,11 @@ public static class SimplePolygonBooleans
 
         return segments;
     }
-    static List<List<Vector2>> connectEdges(List<LineSegment> segments)
+    static List<List<Vector2>> connectEdges(List<LineSegment> segments, List<Vector2> p1, List<Vector2> p2)
     {
         List<List<Vector2>> outputPolygon = new List<List<Vector2>>();
         
+        int counter = 0;
         while(segments.Count > 0)
         {
             List<Vector2> polygon = new List<Vector2>();
@@ -178,6 +180,24 @@ public static class SimplePolygonBooleans
                         break;
                     }
                 }
+            }
+
+
+            counter++;
+
+            if (counter >= 10000f)
+            {
+                Debug.Log("Error: Polygon not closed");
+
+                Debug.Log("Polygon1");
+                foreach (var v2 in p1)
+                    Debug.Log(v2.x + " | " + v2.y);
+
+                Debug.Log("Polygon2");
+                foreach (var v2 in p2)
+                    Debug.Log(v2.x + " | " + v2.y);
+
+                return new List<List<Vector2>>();
             }
 
             polygon.RemoveAt(polygon.Count - 1);
