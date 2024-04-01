@@ -20,7 +20,6 @@ public static class SimplePolygonBooleans
         List<LineSegment>  segmentsB = getLineSegments(verticesB);
 
         List<LineSegment> segments = selectEdgesAdd(segmentsA, segmentsB, polygonA, polygonB);
-
         return connectEdges(segments, polygonA, polygonB);
     }
     public static List<List<Vector2>> Subtract(List<Vector2> polygonA, List<Vector2> polygonB)
@@ -172,14 +171,16 @@ public static class SimplePolygonBooleans
             {
                 for (int i = 0; i < segments.Count; i++)
                 {
-                    if (Vector2.Distance(segments[i].start, currentSegment.end) <= 0f)
+                    //if (Vector2.Distance(segments[i].start, currentSegment.end) <= 0.0000001f)
+                    if (segments[i].start == currentSegment.end)
                     {
                         currentSegment = segments[i];
                         segments.RemoveAt(i);
                         polygon.Add(currentSegment.end);
                         break;
                     }
-                    else if (Vector2.Distance(segments[i].end, currentSegment.end) <= 0f)
+                    //else if (Vector2.Distance(segments[i].end, currentSegment.end) <= 0.0000001f)
+                    else if (segments[i].end == currentSegment.end) 
                     {
                         currentSegment = new LineSegment(segments[i].end, segments[i].start);
                         segments.RemoveAt(i);
