@@ -180,25 +180,27 @@ public static class SimplePolygonBooleans
                         break;
                     }
                 }
+
+                counter++;
+
+                if (counter >= 10000f)
+                {
+                    Debug.Log("Error: Polygon not closed");
+
+                    Debug.Log("Polygon1");
+                    foreach (var v2 in p1)
+                        Debug.Log(v2.x + " | " + v2.y);
+
+                    Debug.Log("Polygon2");
+                    foreach (var v2 in p2)
+                        Debug.Log(v2.x + " | " + v2.y);
+
+                    return new List<List<Vector2>>();
+                }
             }
 
 
-            counter++;
 
-            if (counter >= 10000f)
-            {
-                Debug.Log("Error: Polygon not closed");
-
-                Debug.Log("Polygon1");
-                foreach (var v2 in p1)
-                    Debug.Log(v2.x + " | " + v2.y);
-
-                Debug.Log("Polygon2");
-                foreach (var v2 in p2)
-                    Debug.Log(v2.x + " | " + v2.y);
-
-                return new List<List<Vector2>>();
-            }
 
             polygon.RemoveAt(polygon.Count - 1);
             outputPolygon.Add(polygon);
