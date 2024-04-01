@@ -171,16 +171,17 @@ public static class SimplePolygonBooleans
             {
                 for (int i = 0; i < segments.Count; i++)
                 {
-                    if (Vector2.Distance(segments[i].start, currentSegment.end) <= 0.0001f)
-                    //if (segments[i].start == currentSegment.end)
+                    //if (Vector2.Distance(segments[i].start, currentSegment.end) <= 0.0000001f)
+                    if (segments[i].start == currentSegment.end)
                     {
                         currentSegment = segments[i];
                         segments.RemoveAt(i);
                         polygon.Add(currentSegment.end);
                         break;
                     }
-                    else if (Vector2.Distance(segments[i].end, currentSegment.end) <= 0.0001f)
-                    //else if (segments[i].end == currentSegment.end) 
+
+                    //else if (Vector2.Distance(segments[i].end, currentSegment.end) <= 0.0000001f)
+                    if (segments[i].end == currentSegment.end) 
                     {
                         currentSegment = new LineSegment(segments[i].end, segments[i].start);
                         segments.RemoveAt(i);
