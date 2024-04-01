@@ -1,9 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UIElements;
-using static UnityEditor.Experimental.AssetDatabaseExperimental.AssetDatabaseCounters;
 
 public static class SimplePolygonBooleans
 {
@@ -12,48 +9,17 @@ public static class SimplePolygonBooleans
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------//
     public static List<List<Vector2>> Add(List<Vector2> polygonA, List<Vector2> polygonB)
     {
-        //List<Vector2> verticesA = new List<Vector2>(polygonA);
-        //List<Vector2> verticesB = new List<Vector2>(polygonB);
-        List<Vector2> verticesA = RoundVector2List(polygonA);
-        List<Vector2> verticesB = RoundVector2List(polygonB);
+        List<Vector2> verticesA = new List<Vector2>(polygonA);
+        List<Vector2> verticesB = new List<Vector2>(polygonB);
 
         intersectPolygons(verticesA, verticesB);
-
-
-        Debug.Log("A");
-        foreach (var segment in verticesA)
-        {
-            Debug.Log("(" + segment.x + " | " + segment.y + ")");
-        }
-
-        Debug.Log("B");
-        foreach (var segment in verticesB)
-        {
-            Debug.Log("(" + segment.x + " | " + segment.y + ")");
-        }
-
-        Debug.Log("---------------------");
 
         List<LineSegment> segmentsA = getLineSegments(verticesA);
         List<LineSegment> segmentsB = getLineSegments(verticesB);
 
-        Debug.Log("A");
-        foreach (var segment in segmentsA){
-            Vector2 midPoint = segment.start + (segment.end - segment.start) * 0.5f;
-            Debug.Log("(" + segment.start.x + " | " + segment.start.y + ") (" + segment.end.x + " | " + segment.end.y + ") " + PointInPolygon.insideRay(midPoint, polygonB, 0f));
-        }
+        List<LineSegment> segments = selectEdgesAdd(segmentsA, segmentsB, verticesA, verticesB);
 
-        Debug.Log("B");
-        foreach (var segment in segmentsB){
-            Vector2 midPoint = segment.start + (segment.end - segment.start) * 0.5f;
-            Debug.Log("(" + segment.start.x + " | " + segment.start.y + ") (" + segment.end.x + " | " + segment.end.y + ") " + PointInPolygon.insideRay(midPoint, polygonA, 0f));
-        }
-
-
-        List<LineSegment> segments = selectEdgesAdd(segmentsA, segmentsB, polygonA, polygonB);
-
-
-        return connectEdges(segments, polygonA, polygonB);
+        return connectEdges(segments, verticesA, verticesB);  
     }
     public static List<List<Vector2>> Subtract(List<Vector2> polygonA, List<Vector2> polygonB)
     {
@@ -204,7 +170,7 @@ public static class SimplePolygonBooleans
             {
                 for (int i = 0; i < segments.Count; i++)
                 {
-                    //if (Vector2.Distance(segments[i].start, currentSegment.end) <= 0.0000001f)
+                    //if (Vector2.Distance(segments[i].start, currentSegment.end) <= 0.01f)
                     if (segments[i].start == currentSegment.end)
                     {
                         currentSegment = segments[i];
@@ -213,7 +179,7 @@ public static class SimplePolygonBooleans
                         break;
                     }
 
-                    //else if (Vector2.Distance(segments[i].end, currentSegment.end) <= 0.0000001f)
+                    //else if (Vector2.Distance(segments[i].end, currentSegment.end) <= 0.01f)
                     if (segments[i].end == currentSegment.end)
                     {
                         currentSegment = new LineSegment(segments[i].end, segments[i].start);
@@ -227,8 +193,9 @@ public static class SimplePolygonBooleans
 
                 if (counter >= 10000f)
                 {
-                    Debug.Log("Error: Polygon not closed");
+                    Debug.Log("Error: Polygon cant be closed");
 
+                    /*
                     Debug.Log("Polygon1");
                     foreach (var v2 in p1)
                         Debug.Log(v2.x + " | " + v2.y);
@@ -236,8 +203,9 @@ public static class SimplePolygonBooleans
                     Debug.Log("Polygon2");
                     foreach (var v2 in p2)
                         Debug.Log(v2.x + " | " + v2.y);
+                    */
 
-                    return new List<List<Vector2>>();
+                    return new List<List<Vector2>>() { p1 };
                 }
             }
 
@@ -289,6 +257,8 @@ public static class SimplePolygonBooleans
 
         return roundedList;
     }
+
+
 }
 
 
