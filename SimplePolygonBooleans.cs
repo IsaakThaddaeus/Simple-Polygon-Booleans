@@ -7,6 +7,9 @@ using static UnityEditor.Experimental.AssetDatabaseExperimental.AssetDatabaseCou
 
 public static class SimplePolygonBooleans
 {
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------//
+    //*********** Main Functions *************************************************************************************************************************************//
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------//
     public static List<List<Vector2>> Add(List<Vector2> polygonA, List<Vector2> polygonB)
     {
         List<Vector2> verticesA = new List<Vector2>(polygonA);
@@ -47,6 +50,10 @@ public static class SimplePolygonBooleans
         return connectEdges(segments, polygonA, polygonB);
     }
 
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------//
+    //*********** Select Edges Functions *****************************************************************************************************************************//
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------//
     static void intersectPolygons(List<Vector2> verticesA, List<Vector2> verticesB)
     {
         for (int i = 0; i < verticesA.Count; i++)
@@ -76,30 +83,6 @@ public static class SimplePolygonBooleans
         }
 
     }
-    static List<LineSegment> selectEdgesAdd(List<LineSegment> segmentsA, List<LineSegment> segmentsB, List<Vector2> polygonA, List<Vector2> polygonB)
-    {
-        List<LineSegment> segments = new List<LineSegment>();
-
-        for (int i = 0; i < segmentsA.Count; i++)
-        {
-            Vector2 midPoint = segmentsA[i].start + (segmentsA[i].end - segmentsA[i].start) * 0.5f;
-            if (PointInPolygon.insideAngle(midPoint, polygonB, 0f) == false)
-            {
-                segments.Add(segmentsA[i]);
-            }
-        }
-
-        for (int i = 0; i < segmentsB.Count; i++)
-        {
-            Vector2 midPoint = segmentsB[i].start + (segmentsB[i].end - segmentsB[i].start) * 0.5f;
-            if (PointInPolygon.insideAngle(midPoint, polygonA, 0f) == false || pointOnLineOfPolygon(midPoint, polygonA, 0.0001f) == true)
-            {
-                segments.Add(segmentsB[i]);
-            }
-        }
-
-        return segments;
-    }
     static List<LineSegment> selectEdgesSubtract(List<LineSegment> segmentsA, List<LineSegment> segmentsB, List<Vector2> polygonA, List<Vector2> polygonB)
     {
         List<LineSegment> segments = new List<LineSegment>();
@@ -116,7 +99,7 @@ public static class SimplePolygonBooleans
         for (int i = 0; i < segmentsB.Count; i++)
         {
             Vector2 midPoint = segmentsB[i].start + (segmentsB[i].end - segmentsB[i].start) * 0.5f;
-            if (PointInPolygon.insideAngle(midPoint, polygonA, 0f) == true && pointOnLineOfPolygon(midPoint, polygonA, 0.0001f) == false)
+            if (PointInPolygon.insideAngle(midPoint, polygonA, 0f) == true && pointOnLineOfPolygon(midPoint, polygonA, 0f) == false)
             {
                 segments.Add(segmentsB[i]);
             }
@@ -140,7 +123,31 @@ public static class SimplePolygonBooleans
         for (int i = 0; i < segmentsB.Count; i++)
         {
             Vector2 midPoint = segmentsB[i].start + (segmentsB[i].end - segmentsB[i].start) * 0.5f;
-            if (PointInPolygon.insideAngle(midPoint, polygonA, 0f) == true && pointOnLineOfPolygon(midPoint, polygonA, 0.0001f) == false)
+            if (PointInPolygon.insideAngle(midPoint, polygonA, 0f) == true && pointOnLineOfPolygon(midPoint, polygonA, 0f) == false)
+            {
+                segments.Add(segmentsB[i]);
+            }
+        }
+
+        return segments;
+    }
+    static List<LineSegment> selectEdgesAdd(List<LineSegment> segmentsA, List<LineSegment> segmentsB, List<Vector2> polygonA, List<Vector2> polygonB)
+    {
+        List<LineSegment> segments = new List<LineSegment>();
+
+        for (int i = 0; i < segmentsA.Count; i++)
+        {
+            Vector2 midPoint = segmentsA[i].start + (segmentsA[i].end - segmentsA[i].start) * 0.5f;
+            if (PointInPolygon.insideAngle(midPoint, polygonB, 0f) == false)
+            {
+                segments.Add(segmentsA[i]);
+            }
+        }
+
+        for (int i = 0; i < segmentsB.Count; i++)
+        {
+            Vector2 midPoint = segmentsB[i].start + (segmentsB[i].end - segmentsB[i].start) * 0.5f;
+            if (PointInPolygon.insideAngle(midPoint, polygonA, 0f) == false || pointOnLineOfPolygon(midPoint, polygonA, 0f) == true)
             {
                 segments.Add(segmentsB[i]);
             }
@@ -151,9 +158,9 @@ public static class SimplePolygonBooleans
     static List<List<Vector2>> connectEdges(List<LineSegment> segments, List<Vector2> p1, List<Vector2> p2)
     {
         List<List<Vector2>> outputPolygon = new List<List<Vector2>>();
-        
+
         int counter = 0;
-        while(segments.Count > 0)
+        while (segments.Count > 0)
         {
             List<Vector2> polygon = new List<Vector2>();
             LineSegment currentSegment = segments[0];
@@ -165,14 +172,14 @@ public static class SimplePolygonBooleans
             {
                 for (int i = 0; i < segments.Count; i++)
                 {
-                    if (Vector2.Distance(segments[i].start, currentSegment.end) < 0.001f)
+                    if (Vector2.Distance(segments[i].start, currentSegment.end) <= 0f)
                     {
                         currentSegment = segments[i];
                         segments.RemoveAt(i);
                         polygon.Add(currentSegment.end);
                         break;
                     }
-                    else if (Vector2.Distance(segments[i].end, currentSegment.end) < 0.001f)
+                    else if (Vector2.Distance(segments[i].end, currentSegment.end) <= 0f)
                     {
                         currentSegment = new LineSegment(segments[i].end, segments[i].start);
                         segments.RemoveAt(i);
@@ -199,9 +206,6 @@ public static class SimplePolygonBooleans
                 }
             }
 
-
-
-
             polygon.RemoveAt(polygon.Count - 1);
             outputPolygon.Add(polygon);
         }
@@ -210,6 +214,11 @@ public static class SimplePolygonBooleans
         return outputPolygon;
     }
 
+
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------//
+    //*********** Helper Functions ***********************************************************************************************************************************//
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------//
     static List<LineSegment> getLineSegments(List<Vector2> vertices)
     {
         List<LineSegment> segments = new List<LineSegment>();
@@ -233,6 +242,7 @@ public static class SimplePolygonBooleans
         return false;
     }
 }
+
 
 public class LineSegment
 {
