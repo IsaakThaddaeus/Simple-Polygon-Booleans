@@ -12,14 +12,47 @@ public static class SimplePolygonBooleans
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------//
     public static List<List<Vector2>> Add(List<Vector2> polygonA, List<Vector2> polygonB)
     {
-        List<Vector2> verticesA = new List<Vector2>(polygonA);
-        List<Vector2> verticesB = new List<Vector2>(polygonB);
+        //List<Vector2> verticesA = new List<Vector2>(polygonA);
+        //List<Vector2> verticesB = new List<Vector2>(polygonB);
+        List<Vector2> verticesA = RoundVector2List(polygonA);
+        List<Vector2> verticesB = RoundVector2List(polygonB);
 
         intersectPolygons(verticesA, verticesB);
-        List<LineSegment>  segmentsA = getLineSegments(verticesA);
-        List<LineSegment>  segmentsB = getLineSegments(verticesB);
+
+
+        Debug.Log("A");
+        foreach (var segment in verticesA)
+        {
+            Debug.Log("(" + segment.x + " | " + segment.y + ")");
+        }
+
+        Debug.Log("B");
+        foreach (var segment in verticesB)
+        {
+            Debug.Log("(" + segment.x + " | " + segment.y + ")");
+        }
+
+        Debug.Log("---------------------");
+
+        List<LineSegment> segmentsA = getLineSegments(verticesA);
+        List<LineSegment> segmentsB = getLineSegments(verticesB);
+
+        Debug.Log("A");
+        foreach (var segment in segmentsA){
+            Vector2 midPoint = segment.start + (segment.end - segment.start) * 0.5f;
+            Debug.Log("(" + segment.start.x + " | " + segment.start.y + ") (" + segment.end.x + " | " + segment.end.y + ") " + PointInPolygon.insideRay(midPoint, polygonB, 0f));
+        }
+
+        Debug.Log("B");
+        foreach (var segment in segmentsB){
+            Vector2 midPoint = segment.start + (segment.end - segment.start) * 0.5f;
+            Debug.Log("(" + segment.start.x + " | " + segment.start.y + ") (" + segment.end.x + " | " + segment.end.y + ") " + PointInPolygon.insideRay(midPoint, polygonA, 0f));
+        }
+
 
         List<LineSegment> segments = selectEdgesAdd(segmentsA, segmentsB, polygonA, polygonB);
+
+
         return connectEdges(segments, polygonA, polygonB);
     }
     public static List<List<Vector2>> Subtract(List<Vector2> polygonA, List<Vector2> polygonB)
@@ -181,7 +214,7 @@ public static class SimplePolygonBooleans
                     }
 
                     //else if (Vector2.Distance(segments[i].end, currentSegment.end) <= 0.0000001f)
-                    if (segments[i].end == currentSegment.end) 
+                    if (segments[i].end == currentSegment.end)
                     {
                         currentSegment = new LineSegment(segments[i].end, segments[i].start);
                         segments.RemoveAt(i);
@@ -224,7 +257,7 @@ public static class SimplePolygonBooleans
     static List<LineSegment> getLineSegments(List<Vector2> vertices)
     {
         List<LineSegment> segments = new List<LineSegment>();
-        for(int i = 0; i < vertices.Count; i++)
+        for (int i = 0; i < vertices.Count; i++)
         {
             segments.Add(new LineSegment(vertices[i], vertices[(i + 1) % vertices.Count]));
         }
@@ -237,11 +270,24 @@ public static class SimplePolygonBooleans
             Vector2 a = polygon[i];
             Vector2 b = polygon[(i + 1) % polygon.Count];
 
-            if(Vector2.Distance(a, point) + Vector2.Distance(b, point) <= Vector2.Distance(a, b) + tolerance)
-                return true;         
+            if (Vector2.Distance(a, point) + Vector2.Distance(b, point) <= Vector2.Distance(a, b) + tolerance)
+                return true;
         }
 
         return false;
+    }
+    static List<Vector2> RoundVector2List(List<Vector2> inputList)
+    {
+        List<Vector2> roundedList = new List<Vector2>();
+
+        foreach (Vector2 vector in inputList)
+        {
+            float roundedX = Mathf.Round(vector.x * 100000f) / 100000f;
+            float roundedY = Mathf.Round(vector.y * 100000f) / 100000f;
+            roundedList.Add(new Vector2(roundedX, roundedY));
+        }
+
+        return roundedList;
     }
 }
 
